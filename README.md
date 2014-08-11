@@ -1,5 +1,5 @@
-EnchArsenal
-===========
+EnchantedArsenal
+================
 
 SKSE backend for Enchanted Arsenal
 
