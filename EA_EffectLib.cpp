@@ -79,7 +79,7 @@ void EAr_MGEFInfoLib::CompleteInternalSetup()
 	battleaxeKeyword = papyrusKeyword::GetKeyword(NULL, "WeapTypeBattleaxe");
 	READY = true;
 	if (CUSTOMLIB)
-		_MESSAGE("User-Defined Custom Effect(s) Loaded Successfully.");
+		_MESSAGE("User-Defined Custom Effects Loaded Successfully.");
 	else
 		_MESSAGE("Internal effect library loaded successfully.");
 }
@@ -187,8 +187,6 @@ void EAr_MGEFInfoLib::ApplyEffects(UInt32 mgefIdx, UInt32 weapCode)
 {
 	if (!READY)
 		return;
-
-	_MESSAGE("debug -- ApplyEffects called. Custom == %s", CUSTOMLIB ? "TRUE" : "FALSE");
 
 	UInt32 FXIdx = mgefIdx * 9 + weapCode;
 	EffectSetting* thisMGEF = GetMGEFbyIndex(mgefIdx);
