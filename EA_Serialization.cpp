@@ -11,6 +11,20 @@ struct SKSESerializationInterface;
 void Serialization_Revert(SKSESerializationInterface * intfc) {/* Reserved */}
 
 
+void VerifyEspIsLoaded()
+{
+	const char* EArName = "EnchantedArsenal.esp";
+	DataHandler* pData = DataHandler::GetSingleton();
+	UInt32 EArModIndex = (pData) ? pData->GetModIndex(EArName) : 0;
+	if (EArModIndex >= 255)
+	{
+		_MESSAGE("ERROR: EnchantedArsenal.esp is not active!");
+		EArDeactivated = true;
+		return;
+	}
+}
+
+
 //______________________________________________________________________________________________________________________
 //==================  SAVE DATA  =======================================================================================
 
@@ -126,6 +140,8 @@ void Serialization_Save(SKSESerializationInterface * intfc)
 
 UInt32 ProcessLoadForm(SKSESerializationInterface* intfc)
 {
+	static char loadEntryModName[0x104] = "NULL";
+
 	SaveFormData entry;
 	UInt32 sizeRead = intfc->ReadRecordData(&entry, sizeof(SaveFormData));
 	if (sizeRead == sizeof(SaveFormData))
@@ -137,7 +153,11 @@ UInt32 ProcessLoadForm(SKSESerializationInterface* intfc)
 		UInt32 fullFormID = (pData) ? pData->GetModIndex(entry.modName) : 0xFFFFFFFF;
 		if (fullFormID >= 255)
 		{
-			_MESSAGE("Error during load: expected to find mod %s, but mod is not present. %s", entry.modName, (pData) ? "" : "(DataHandler Error!)");
+			if (strcmp(loadEntryModName, entry.modName) != 0) //If not equal (prevents log spam from missing plugin)
+			{
+				_MESSAGE("Error during load: expected to find mod %s, but mod is not present. %s", entry.modName, (pData) ? "" : "(DataHandler Error!)");
+				strcpy_s(loadEntryModName, entry.modName);
+			}
 			return 0;
 		}
 
@@ -171,6 +191,9 @@ float ProcessLoadFloat(SKSESerializationInterface* intfc)
 
 void Serialization_Load(SKSESerializationInterface* intfc)
 {
+	//verify EnchantedArsenal.esp is loaded
+	VerifyEspIsLoaded();
+
 	if (EArDeactivated)
 		return;
 
