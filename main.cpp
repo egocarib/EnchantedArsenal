@@ -58,17 +58,6 @@ void SKSEMessageReceptor(SKSEMessagingInterface::Message* msg)
 	if (msg->type != SKSEMessagingInterface::kMessage_InputLoaded)
 		return;
 
-	//verify loaded ESP before enabling event sinks
-	const char* EArName = "EnchantedArsenal.esp";
-	DataHandler* pData = DataHandler::GetSingleton();
-	UInt32 EArModIndex = (pData) ? pData->GetModIndex(EArName) : 0;
-	if (EArModIndex >= 255)
-	{
-		_MESSAGE("ERROR: EnchantedArsenal.esp is not active!");
-		EArDeactivated = true;
-		return;
-	}
-
 	InitialLoadSetup();
 }
 
