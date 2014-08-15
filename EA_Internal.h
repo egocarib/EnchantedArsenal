@@ -17,7 +17,6 @@ struct EnchantedWeaponEquipInfo
 	bool				custom;
 };
 
-
 struct EnchantedWeaponInfo
 {
 	EnchantedWeaponEquipInfo	rightHand;
@@ -30,18 +29,10 @@ typedef std::map<Actor*, EnchantedWeaponInfo>	ActorEnchantedWeaponInfo;
 extern	EquippedEnchantMap			eq_map;
 extern	ActorEnchantedWeaponInfo	enchantedWeapon_map;
 
-//___________________________________________________________________________________________________________
-//======================= EQUIPMENT INFO METHODS TAKEN FROM PAPYRUSWORNOBJECT.CPP ===========================
-//
-//                                       Thank you, SKSE team!
-
-
-
-
-
 
 namespace EArInternal
 {
+
 	EquipData			ResolveEquippedObject(Actor * actor, UInt32 weaponSlot, UInt32 slotMask); //0 = left hand, 1 = right. Use 0 slotmask for weapon
 	EnchantmentItem*	ResolveEquippedEnchantment(BaseExtraList * extraData);
 	bool				WeaponHasKeyword(TESObjectWEAP* weap, BGSKeyword* keyToCheck);
@@ -49,7 +40,5 @@ namespace EArInternal
 	UInt32				LookupCostliestEnchantmentMGEFDuration(EnchantmentItem* pEnch);
 	void				SetEnchantEffects(TESObjectWEAP* pWeap, EnchantmentItem* pEnch, EnchantedWeaponEquipInfo &weaponInfo, bool bApply = true);
 	void				UpdateCurrentEquipInfo(Actor* actor);
+	
 }
-
-
-

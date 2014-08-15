@@ -1,15 +1,11 @@
-
 #include "EA_Internal.h"
 #include "EA_EffectLib.h"
 
-//___________________________________________________________________________________________________________
-//============================== EQUIPMENT BORROWED FROM PAPYRUSWORNOBJECT.CPP ==================================
-//
-//                                       Thank you, SKSE team!
+
+//Equipment methods adapted from skse\PapyrusWornObject.cpp (thanks SKSE team!)
 
 EquippedEnchantMap			eq_map;
 ActorEnchantedWeaponInfo	enchantedWeapon_map;
-
 
 class MatchByEquipSlot : public FormMatcher
 {
@@ -76,20 +72,13 @@ EnchantmentItem* EArInternal::ResolveEquippedEnchantment(BaseExtraList * extraDa
 
 
 
-	
-
-
-
 bool EArInternal::WeaponHasKeyword(TESObjectWEAP* weap, BGSKeyword* keyToCheck)
 {
 	BGSKeywordForm* keys = &weap->keyword;
 	for(UInt32 i = 0; i < keys->numKeywords; i++)
-	{
 		if (keys->keywords[i] == keyToCheck)
-		{
 			return true;
-		}
-	}
+
 	return false;
 }
 
@@ -150,9 +139,8 @@ void EArInternal::SetEnchantEffects(TESObjectWEAP* pWeap, EnchantmentItem* pEnch
 	weaponInfo.mgef = thisMGEF;
 	weaponInfo.mgefIndex = mgefIdx;
 
-	return;// weaponInfo;
+	return;
 }
-
 
 
 void EArInternal::UpdateCurrentEquipInfo(Actor* actor)
@@ -184,10 +172,6 @@ void EArInternal::UpdateCurrentEquipInfo(Actor* actor)
 			if (rightHandEnchant)
 				EArInternal::SetEnchantEffects(rightHandWeapon, rightHandEnchant, enchantedWeapon_map[actor].rightHand);
 		}
-
-		//If two-handed weapon, skip left hand check
-		if (enchantedWeapon_map[actor].rightHand.weaponType > 3) 
-			return;
 	}
 
 	if (enchantedWeapon_map[actor].rightHand.weaponType < 4) //If two-handed weapon, skip left hand check
