@@ -504,6 +504,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\EA_Preload.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\EA_Preload.h"
+			>
+		</File>
+		<File
 			RelativePath=".\EA_Serialization.cpp"
 			>
 		</File>
