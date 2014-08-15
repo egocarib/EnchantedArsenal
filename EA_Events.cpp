@@ -10,7 +10,6 @@ TESEquipEventHandler				g_equipEventHandler;
 EventDispatcher<SKSEActionEvent>*	g_skseActionEventDispatcher;
 LocalActionEventHandler				g_skseActionEventHandler;
 
-
 EventResult TESEquipEventHandler::ReceiveEvent(TESEquipEvent * evn, EventDispatcher<TESEquipEvent> * dispatcher)
 {
 	static bool isEquippingEnchantment = false;
@@ -22,13 +21,13 @@ EventResult TESEquipEventHandler::ReceiveEvent(TESEquipEvent * evn, EventDispatc
 		EnchantmentItem* eqEnch = DYNAMIC_CAST(eqForm, TESForm, EnchantmentItem);
 		if (eqEnch)
 		{
-			eq_map[evn->actor] = eqEnch;	//map enchantment to actor
+			eq_map[evn->actor] = eqEnch;	//Map enchantment to actor
 			isEquippingEnchantment = true;
-			return kEvent_Continue;			//wait for weapon equip event to come next
+			return kEvent_Continue;			//Wait for weapon equip event to come next
 		}
 	}
 
-	else //enchantment equip event was just received
+	else //Enchantment equip event was just received
 	{
 		TESObjectWEAP* eqWeap = DYNAMIC_CAST(eqForm, TESForm, TESObjectWEAP);
 		if (eqWeap)
@@ -37,11 +36,7 @@ EventResult TESEquipEventHandler::ReceiveEvent(TESEquipEvent * evn, EventDispatc
 			EquippedEnchantMap::iterator itEnd = eq_map.end();
 			if (it != itEnd)
 			{
-				//_MESSAGE("Enchanted Weapon Equipped:    Found Mapped Effect, setting MGEF data...");
-
-				EnchantmentItem* weapEnch = it->second;
 				eq_map.erase(it);
-
 				EArInternal::UpdateCurrentEquipInfo(evn->actor);
 			}
 		}
@@ -50,7 +45,6 @@ EventResult TESEquipEventHandler::ReceiveEvent(TESEquipEvent * evn, EventDispatc
 
 	return kEvent_Continue;
 }
-
 
 EventResult LocalActionEventHandler::ReceiveEvent(SKSEActionEvent * evn, EventDispatcher<SKSEActionEvent> * dispatcher)
 {
