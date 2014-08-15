@@ -1,12 +1,15 @@
 #include "skse/GameRTTI.h"
+#include "EA_Preload.h"
 #include "EA_Serialization.h"
 #include "EA_EffectLib.h"
 #include "EA_Internal.h"
 #include "EA_Papyrus.h"
-
+#include <vector>
+#include <map>
 
 
 std::vector<UInt32> RemovedCustomEnchantmentsRecord;
+std::vector<Actor*> ActorsToActivateOnLoad;
 struct SKSESerializationInterface;
 void Serialization_Revert(SKSESerializationInterface * intfc) {/* Reserved */}
 
@@ -85,60 +88,120 @@ void Serialization_Save(SKSESerializationInterface * intfc)
 			intfc->WriteRecordData(&(*it), sizeof(*it));
 
 	//================= VERSION 2.0 CUSTOM ENCHANTMENTS ======================================================================
+	if (customMGEFInfoLibrary._mgefForms.size() != 0)
+	{
+		if (intfc->OpenRecord('cMGF', kSerializationDataVersion))
+			for (IntVec::iterator it = customMGEFInfoLibrary._mgefForms.begin(); it != customMGEFInfoLibrary._mgefForms.end(); ++it)
+				WriteSaveForm((*it), intfc);
 
-	if (customMGEFInfoLibrary._mgefForms.size() == 0)
-		return;
+		if (intfc->OpenRecord('cESH', kSerializationDataVersion)) 
+			for (ShaderVec::iterator it = customMGEFInfoLibrary._eShaders.begin(); it != customMGEFInfoLibrary._eShaders.end(); ++it)
+				WriteSaveForm((*it) ? (*it)->formID : 0, intfc);
 
-	if (intfc->OpenRecord('cMGF', kSerializationDataVersion))
-		for (IntVec::iterator it = customMGEFInfoLibrary._mgefForms.begin(); it != customMGEFInfoLibrary._mgefForms.end(); ++it)
-			WriteSaveForm((*it), intfc);
+		if (intfc->OpenRecord('cEAR', kSerializationDataVersion))
+			for (ArtVec::iterator it = customMGEFInfoLibrary._eArt.begin(); it != customMGEFInfoLibrary._eArt.end(); ++it)
+				WriteSaveForm((*it) ? (*it)->formID : 0, intfc);
 
-	if (intfc->OpenRecord('cESH', kSerializationDataVersion)) 
-		for (ShaderVec::iterator it = customMGEFInfoLibrary._eShaders.begin(); it != customMGEFInfoLibrary._eShaders.end(); ++it)
-			WriteSaveForm((*it) ? (*it)->formID : 0, intfc);
+		if (intfc->OpenRecord('cHSH', kSerializationDataVersion))
+			for (ShaderVec::iterator it = customMGEFInfoLibrary._hShaders.begin(); it != customMGEFInfoLibrary._hShaders.end(); ++it)
+				WriteSaveForm((*it) ? (*it)->formID : 0, intfc);
 
-	if (intfc->OpenRecord('cEAR', kSerializationDataVersion))
-		for (ArtVec::iterator it = customMGEFInfoLibrary._eArt.begin(); it != customMGEFInfoLibrary._eArt.end(); ++it)
-			WriteSaveForm((*it) ? (*it)->formID : 0, intfc);
+		if (intfc->OpenRecord('cHAR', kSerializationDataVersion))
+			for (ArtVec::iterator it = customMGEFInfoLibrary._hArt.begin(); it != customMGEFInfoLibrary._hArt.end(); ++it)
+				WriteSaveForm((*it) ? (*it)->formID : 0, intfc);
 
-	if (intfc->OpenRecord('cHSH', kSerializationDataVersion))
-		for (ShaderVec::iterator it = customMGEFInfoLibrary._hShaders.begin(); it != customMGEFInfoLibrary._hShaders.end(); ++it)
-			WriteSaveForm((*it) ? (*it)->formID : 0, intfc);
+		if (intfc->OpenRecord('cPRJ', kSerializationDataVersion))
+			for (ProjectileVec::iterator it = customMGEFInfoLibrary._projectiles.begin(); it != customMGEFInfoLibrary._projectiles.end(); ++it)
+				WriteSaveForm((*it) ? (*it)->formID : 0, intfc);
 
-	if (intfc->OpenRecord('cHAR', kSerializationDataVersion))
-		for (ArtVec::iterator it = customMGEFInfoLibrary._hArt.begin(); it != customMGEFInfoLibrary._hArt.end(); ++it)
-			WriteSaveForm((*it) ? (*it)->formID : 0, intfc);
+		if (intfc->OpenRecord('cIDS', kSerializationDataVersion))
+			for (ImpactDataVec::iterator it = customMGEFInfoLibrary._impactData.begin(); it != customMGEFInfoLibrary._impactData.end(); ++it)
+				WriteSaveForm((*it) ? (*it)->formID : 0, intfc);
 
-	if (intfc->OpenRecord('cPRJ', kSerializationDataVersion))
-		for (ProjectileVec::iterator it = customMGEFInfoLibrary._projectiles.begin(); it != customMGEFInfoLibrary._projectiles.end(); ++it)
-			WriteSaveForm((*it) ? (*it)->formID : 0, intfc);
+		if (intfc->OpenRecord('cPFL', kSerializationDataVersion))
+			for (IntVec::iterator it = customMGEFInfoLibrary._persistFlags.begin(); it != customMGEFInfoLibrary._persistFlags.end(); ++it)
+				intfc->WriteRecordData(&(*it), sizeof(*it));
 
-	if (intfc->OpenRecord('cIDS', kSerializationDataVersion))
-		for (ImpactDataVec::iterator it = customMGEFInfoLibrary._impactData.begin(); it != customMGEFInfoLibrary._impactData.end(); ++it)
-			WriteSaveForm((*it) ? (*it)->formID : 0, intfc);
+		if (intfc->OpenRecord('cTWE', kSerializationDataVersion))
+			for (FloatVec::iterator it = customMGEFInfoLibrary._tWeights.begin(); it != customMGEFInfoLibrary._tWeights.end(); ++it)
+				intfc->WriteRecordData(&(*it), sizeof(*it));
 
-	if (intfc->OpenRecord('cPFL', kSerializationDataVersion))
-		for (IntVec::iterator it = customMGEFInfoLibrary._persistFlags.begin(); it != customMGEFInfoLibrary._persistFlags.end(); ++it)
-			intfc->WriteRecordData(&(*it), sizeof(*it));
+		if (intfc->OpenRecord('cTCU', kSerializationDataVersion))
+			for (FloatVec::iterator it = customMGEFInfoLibrary._tCurves.begin(); it != customMGEFInfoLibrary._tCurves.end(); ++it)
+				intfc->WriteRecordData(&(*it), sizeof(*it));
 
-	if (intfc->OpenRecord('cTWE', kSerializationDataVersion))
-		for (FloatVec::iterator it = customMGEFInfoLibrary._tWeights.begin(); it != customMGEFInfoLibrary._tWeights.end(); ++it)
-			intfc->WriteRecordData(&(*it), sizeof(*it));
+		if (intfc->OpenRecord('cTDR', kSerializationDataVersion))
+			for (FloatVec::iterator it = customMGEFInfoLibrary._tDurations.begin(); it != customMGEFInfoLibrary._tDurations.end(); ++it)
+				intfc->WriteRecordData(&(*it), sizeof(*it));
+	}
 
-	if (intfc->OpenRecord('cTCU', kSerializationDataVersion))
-		for (FloatVec::iterator it = customMGEFInfoLibrary._tCurves.begin(); it != customMGEFInfoLibrary._tCurves.end(); ++it)
-			intfc->WriteRecordData(&(*it), sizeof(*it));
+	//Saving Current Equip Info ------->
+	//Current equipped magic effect info, so that visual effects can be preloaded when this save is re-loaded in order
+	//to show up correctly. Regular serialization load is too late, and preload is too early to actually retrieve this
+	//equip info from the actors, so the data needs to be saved. Player info gets added last in case of enchant art
+	//conflicts, it's not going to be possible to preload multiple types of art if other actors are wielding same effect.
 
-	if (intfc->OpenRecord('cTDR', kSerializationDataVersion))
-		for (FloatVec::iterator it = customMGEFInfoLibrary._tDurations.begin(); it != customMGEFInfoLibrary._tDurations.end(); ++it)
-			intfc->WriteRecordData(&(*it), sizeof(*it));
+	//Begin by gathering current actor equip info from enchantedWeapon_map
+	std::vector<Actor*> activeActors;
+	std::map<EffectSetting*, UInt32> activeMGEFs;
+	EffectSetting* thisMGEF = NULL;
+	ActorEnchantedWeaponInfo::iterator playerIt = enchantedWeapon_map.find((Actor*)(*g_thePlayer));
+
+	for (ActorEnchantedWeaponInfo::iterator it = enchantedWeapon_map.begin(); it != enchantedWeapon_map.end(); ++it)
+	{
+		bool actorHasData = false;
+		if (it != playerIt)
+		{
+			thisMGEF = it->second.leftHand.mgef;
+			if (thisMGEF)
+			{
+				activeMGEFs[thisMGEF] = it->second.leftHand.weaponType;
+				actorHasData = true;
+			}
+			thisMGEF = it->second.rightHand.mgef;
+			if (thisMGEF)
+			{
+				activeMGEFs[thisMGEF] = it->second.rightHand.weaponType;
+				actorHasData = true;
+			}
+		}
+		if (actorHasData)
+			activeActors.push_back(it->first);
+	}
+
+	if (playerIt != enchantedWeapon_map.end())
+	{
+		thisMGEF = playerIt->second.leftHand.mgef;
+		if (thisMGEF)
+			activeMGEFs[thisMGEF] = playerIt->second.leftHand.weaponType;
+		thisMGEF = playerIt->second.rightHand.mgef;
+		if (thisMGEF)
+			activeMGEFs[thisMGEF] = playerIt->second.rightHand.weaponType;
+		activeActors.push_back(playerIt->first);
+	}
+
+	if (activeMGEFs.size() > 0)
+	{
+		//Write current equipped active effect info
+		if (intfc->OpenRecord('EQUP', kSerializationDataVersion))
+			for (std::map<EffectSetting*, UInt32>::iterator it = activeMGEFs.begin(); it != activeMGEFs.end(); ++it)
+			{
+				WriteSaveForm(it->first->formID, intfc);
+				intfc->WriteRecordData(&(it->second), sizeof(it->second));
+			}
+		//Write current actors wielding active effects
+		if (intfc->OpenRecord('ACTO', kSerializationDataVersion))
+			for (std::vector<Actor*>::iterator it = activeActors.begin(); it != activeActors.end(); ++it)
+				WriteSaveForm((*it)->formID, intfc);
+	}
 }
 
 
 //______________________________________________________________________________________________________________________
 //==================  LOAD DATA  =======================================================================================
 
-UInt32 ProcessLoadForm(SKSESerializationInterface* intfc)
+template <typename LoadIntfc_T>
+UInt32 ProcessLoadForm(LoadIntfc_T* intfc)
 {
 	static char loadEntryModName[0x104] = "NULL";
 
@@ -169,7 +232,8 @@ UInt32 ProcessLoadForm(SKSESerializationInterface* intfc)
 		{ _MESSAGE("Error Reading Form From Cosave: INVALID CHUNK SIZE (%u Expected %u)", sizeRead, sizeof(SaveFormData)); return 0; }
 }
 
-UInt32 ProcessLoadInt(SKSESerializationInterface* intfc)
+template <typename LoadIntfc_T>
+UInt32 ProcessLoadInt(LoadIntfc_T* intfc)
 {
 	UInt32 entry;
 	UInt32 sizeRead = intfc->ReadRecordData(&entry, sizeof(UInt32));
@@ -179,7 +243,8 @@ UInt32 ProcessLoadInt(SKSESerializationInterface* intfc)
 		{ _MESSAGE("Error Reading Int From Cosave: INVALID CHUNK SIZE (%u Expected %u)", sizeRead, sizeof(UInt32)); return 0; }
 }
 
-float ProcessLoadFloat(SKSESerializationInterface* intfc)
+template <typename LoadIntfc_T>
+float ProcessLoadFloat(LoadIntfc_T* intfc)
 {
 	float entry;
 	UInt32 sizeRead = intfc->ReadRecordData(&entry, sizeof(float));
@@ -189,7 +254,8 @@ float ProcessLoadFloat(SKSESerializationInterface* intfc)
 		{ _MESSAGE("Error Reading Float From Cosave: INVALID CHUNK SIZE (%u Expected %u)", sizeRead, sizeof(float)); return 0; }
 }
 
-void Serialization_Load(SKSESerializationInterface* intfc)
+template <typename LoadIntfc_T>
+void Serialization_Preload(LoadIntfc_T* intfc)
 {
 	//verify EnchantedArsenal.esp is loaded
 	VerifyEspIsLoaded();
@@ -205,6 +271,9 @@ void Serialization_Load(SKSESerializationInterface* intfc)
 
 	bool missingFormError = false;
 	RemovedCustomEnchantmentsRecord.clear();
+	ActorsToActivateOnLoad.clear();
+
+	std::map<EffectSetting*, UInt32> preloadableMGEFs;
 
 	bool dataLoaded = false;
 
@@ -370,6 +439,22 @@ void Serialization_Load(SKSESerializationInterface* intfc)
 			for (;length > 0; length -= sizeof(float))
 				customMGEFInfoLibrary._tDurations.push_back(ProcessLoadFloat(intfc));
 
+		else if (type == 'EQUP')
+			for (;length > 0; length -= (sizeof(SaveFormData) + sizeof(UInt32)))
+			{
+				EffectSetting* mgef = DYNAMIC_CAST(LookupFormByID(ProcessLoadForm(intfc)), TESForm, EffectSetting);
+				UInt32 weaponType = ProcessLoadInt(intfc);
+				preloadableMGEFs[mgef] = weaponType;
+			}
+
+		else if (type == 'ACTO')
+			for (;length > 0; length -= sizeof(SaveFormData))
+			{
+				Actor* actor = DYNAMIC_CAST(LookupFormByID(ProcessLoadForm(intfc)), TESForm, Actor);
+				if (actor)
+					ActorsToActivateOnLoad.push_back(actor);
+			}
+
 		else
 			{ _MESSAGE("Error Reading From Cosave: UNHANDLED TYPE %08X, Aborting...\n", type); error = true; }
 	}
@@ -395,9 +480,38 @@ void Serialization_Load(SKSESerializationInterface* intfc)
 	{
 		MGEFInfoLibrary.CompleteInternalSetup();
 		customMGEFInfoLibrary.CompleteInternalSetup();
-		//This works, but the player's enchantments are already loaded before serialization load is called,
-		//so effects don't update the first time a save is loaded after boot from desktop (have to sheathe/redraw)
-		//I think this works fine for other subsequent loads, though.
-		EArInternal::UpdateCurrentEquipInfo(*g_thePlayer);
+
+		//preload any magic effects that were active during the last save
+		for(std::map<EffectSetting*, UInt32>::iterator it = preloadableMGEFs.begin(); it != preloadableMGEFs.end(); ++it)
+		{
+			UInt32 mgefIdx = MGEFInfoLibrary.LookupMGEF(it->first);
+			if (mgefIdx <= 13)
+				MGEFInfoLibrary.ApplyEffects(mgefIdx, it->second);
+			else
+			{
+				mgefIdx = customMGEFInfoLibrary.LookupMGEF(it->first);
+				if (mgefIdx <= 13)
+					customMGEFInfoLibrary.ApplyEffects(mgefIdx, it->second);
+			}
+		}
 	}
 }
+
+
+void Serialization_Load(SKSESerializationInterface* intfc)
+{
+	//All I am doing during main load now is updating actor equip information for actors that had enchanted weapons
+	for (std::vector<Actor*>::iterator it = ActorsToActivateOnLoad.begin(); it != ActorsToActivateOnLoad.end(); ++it)
+		EArInternal::UpdateCurrentEquipInfo(*it);
+}
+
+
+//explicit template instantiations (allows defining templated functions outside of the header)
+template UInt32	ProcessLoadForm<SKSESerializationInterface>(SKSESerializationInterface* intfc);
+template UInt32	ProcessLoadForm<EAPreload::EAPreloadInterface>(EAPreload::EAPreloadInterface* intfc);
+template UInt32	ProcessLoadInt<SKSESerializationInterface>(SKSESerializationInterface* intfc);
+template UInt32	ProcessLoadInt<EAPreload::EAPreloadInterface>(EAPreload::EAPreloadInterface* intfc);
+template float	ProcessLoadFloat<SKSESerializationInterface>(SKSESerializationInterface* intfc);
+template float	ProcessLoadFloat<EAPreload::EAPreloadInterface>(EAPreload::EAPreloadInterface* intfc);
+template void	Serialization_Preload<SKSESerializationInterface>(SKSESerializationInterface* intfc);
+template void	Serialization_Preload<EAPreload::EAPreloadInterface>(EAPreload::EAPreloadInterface* intfc);

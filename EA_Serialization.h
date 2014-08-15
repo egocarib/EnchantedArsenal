@@ -5,10 +5,10 @@
 #include <vector>
 
 
-
 //Vector used to mark invalid records during Serialization Load - this record
 //list is then retrieved each game load and deleted on the papyrus side as well.
 extern	std::vector<UInt32>	RemovedCustomEnchantmentsRecord;
+
 const	UInt32				kSerializationDataVersion = 1;
 
 struct SaveFormData
@@ -34,9 +34,13 @@ struct SaveFormData
 };
 
 void WriteSaveForm(UInt32 fullFormID, SKSESerializationInterface* intfc);
-void Serialization_Save(SKSESerializationInterface * intfc);
-UInt32 ProcessLoadForm(SKSESerializationInterface* intfc);
-UInt32 ProcessLoadInt(SKSESerializationInterface* intfc);
-float ProcessLoadFloat(SKSESerializationInterface* intfc);
+void Serialization_Save(SKSESerializationInterface* intfc);
 void Serialization_Load(SKSESerializationInterface* intfc);
+
+//load methods templated to support both SKSE serialization load & preload with custom interface:
+template <typename LoadIntfc_T> UInt32	ProcessLoadForm			(LoadIntfc_T* intfc);
+template <typename LoadIntfc_T> UInt32	ProcessLoadInt			(LoadIntfc_T* intfc);
+template <typename LoadIntfc_T> float	ProcessLoadFloat		(LoadIntfc_T* intfc);
+template <typename LoadIntfc_T> void	Serialization_Preload	(LoadIntfc_T* intfc);
+
 void Serialization_Revert(SKSESerializationInterface * intfc);
