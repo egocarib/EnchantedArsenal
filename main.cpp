@@ -1,13 +1,13 @@
 #include "skse/PluginAPI.h"
 #include "skse/skse_version.h"
 #include <shlobj.h>
-
-
 #include "EA_EffectLib.h"
+#include "EA_Preload.h"
 #include "EA_Serialization.h"
 #include "EA_Papyrus.h"
 #include "EA_Internal.h"
 #include "EA_Events.h"
+
 
 
 IDebugLog					gLog;
@@ -33,7 +33,6 @@ template <> void UnpackValue(VMArray<BGSImpactDataSet*> * dst, VMValue * src)
 
 
 
-
 void InitialLoadSetup()
 {
 	_MESSAGE("Building Event Sinks...");
@@ -50,17 +49,21 @@ void InitialLoadSetup()
 	customMGEFInfoLibrary.CUSTOMLIB = true;
 }
 
-
-
 void SKSEMessageReceptor(SKSEMessagingInterface::Message* msg)
 {
 	//kMessage_InputLoaded only sent once, on initial Main Menu load
-	if (msg->type != SKSEMessagingInterface::kMessage_InputLoaded)
-		return;
+	if (msg->type == SKSEMessagingInterface::kMessage_InputLoaded)
+		InitialLoadSetup();
 
-	InitialLoadSetup();
+	//Sent immediately before the game begins loading a save. Using this instead of default Serialization
+	//Load because effects must be pre-loaded in order to display correctly during the initial game load.
+	else if (msg->type == SKSEMessagingInterface::kMessage_PreLoadGame)
+	{
+		EAPreload::EAPreloadInterface* preloadInterface = EAPreload::EAPreloadInterface::GetInterface();
+		preloadInterface->EstablishCosavePath(msg->data);
+		preloadInterface->PreloadPlugin();
+	}
 }
-
 
 
 extern "C"
