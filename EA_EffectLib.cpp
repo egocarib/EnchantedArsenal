@@ -147,9 +147,7 @@ EffectSetting* EAr_MGEFInfoLib::GetMGEFbyIndex(UInt32 mgefIdx)
 
 	switch (mgefIdx)
 	{
-		//This isn't ideal, but I simply could not figure out the problem with the _mgefs vector,
-		//it somehow was getting corrupted under certain circumstances (like after loading another
-		//preset), and I can't figure out how to fix it after quite a few hours of debugging...
+		//This isn't ideal, but the _mgef vector I was originally using was giving me a lot of trouble
 		case 0:
 			return DYNAMIC_CAST(LookupFormByID(0x0004605A), TESForm, EffectSetting);
 		case 1:
@@ -193,7 +191,7 @@ void EAr_MGEFInfoLib::ApplyEffects(UInt32 mgefIdx, UInt32 weapCode)
 
 	if (!thisMGEF)
 	{
-		_MESSAGE("ERROR: ApplyEffects mgefIdx out of bounds.");
+		_MESSAGE("ERROR: ApplyEffects mgefIdx out of bounds. (%u)", mgefIdx);
 		return;
 	}
 
@@ -204,7 +202,7 @@ void EAr_MGEFInfoLib::ApplyEffects(UInt32 mgefIdx, UInt32 weapCode)
 	thisMGEF->properties.projectile    = _projectiles[FXIdx];
 	thisMGEF->properties.impactDataSet = _impactData[FXIdx];
 	if (_persistFlags[FXIdx] > 0)
-		thisMGEF->properties.flags    |= thisMGEF->properties.kEffectType_FXPersist; //FXPersistFlag
+		thisMGEF->properties.flags    |= thisMGEF->properties.kEffectType_FXPersist;
 	else
 		thisMGEF->properties.flags    &= ~(thisMGEF->properties.kEffectType_FXPersist);
 	thisMGEF->properties.taperWeight   = _tWeights[FXIdx];
@@ -215,175 +213,70 @@ void EAr_MGEFInfoLib::ApplyEffects(UInt32 mgefIdx, UInt32 weapCode)
 
 void EAr_MGEFInfoLib::SetEnchantShader(TESEffectShader* arg, UInt32 idx, UInt32 range)
 {
-	UInt32 mgefIdx = idx / 9;
-	if (READY && (mgefIdx == (idx + range - 1) / 9)) //ensure we're only editing one effect across this range
-	{
-		EffectSetting* thisMGEF = GetMGEFbyIndex(mgefIdx);
-		if (!thisMGEF)
-		{
-			_MESSAGE("ERROR: Attempted to set Enchant Shader on NULL effect [mgefIdx %u, idx %u, range %u, arg %08X]", mgefIdx, idx, range, (arg) ? arg->formID : 0);
-			return;
-		}
-
-		thisMGEF->properties.enchantShader = arg;
+	if (READY && (idx / 9) == ((idx + range - 1) / 9)) //ensure we're only editing one effect across this range
 		for (UInt32 i = idx; i < (idx + range); i++)
 			_eShaders[i] = arg;
-	}
 }
 
 void EAr_MGEFInfoLib::SetEnchantArt(BGSArtObject* arg, UInt32 idx, UInt32 range)
 {
-	if (READY)    for (UInt32 i = idx; i < (idx + range); i++)    _eArt[i] = arg;
-	//enchant art must wait to be set during equip event (it's weapon-specific).
-	//Could set it here but not really worth it. In fact, none of these effect
-	//details actually need to be set on the MGEFs here, but I already wrote the
-	//code so... if it ain't broke, I ain't gonna fix it.
+	if (READY && (idx / 9) == ((idx + range - 1) / 9))
+		for (UInt32 i = idx; i < (idx + range); i++)
+			_eArt[i] = arg;
 }
 
 void EAr_MGEFInfoLib::SetHitShader(TESEffectShader* arg, UInt32 idx, UInt32 range)
 {
-	UInt32 mgefIdx = idx / 9;
-	if (READY && (mgefIdx == (idx + range - 1) / 9))
-	{
-		EffectSetting* thisMGEF = GetMGEFbyIndex(mgefIdx);
-		if (!thisMGEF)
-		{
-			_MESSAGE("ERROR: Attempted to set Hit Shader on NULL effect [mgefIdx %u, idx %u, range %u, arg %08X]", mgefIdx, idx, range, (arg) ? arg->formID : 0);
-			return;
-		}
-
-		thisMGEF->properties.hitShader = arg;
+	if (READY && (idx / 9) == ((idx + range - 1) / 9))
 		for (UInt32 i = idx; i < (idx + range); i++)
 			_hShaders[i] = arg;
-	}
 }
 
 void EAr_MGEFInfoLib::SetHitArt(BGSArtObject* arg, UInt32 idx, UInt32 range)
 {
-	UInt32 mgefIdx = idx / 9;
-	if (READY && (mgefIdx == (idx + range - 1) / 9))
-	{
-		EffectSetting* thisMGEF = GetMGEFbyIndex(mgefIdx);
-		if (!thisMGEF)
-		{
-			_MESSAGE("ERROR: Attempted to set Hit Art on NULL effect [mgefIdx %u, idx %u, range %u, arg %08X]", mgefIdx, idx, range, (arg) ? arg->formID : 0);
-			return;
-		}
-
-		thisMGEF->properties.hitEffectArt = arg;
+	if (READY && (idx / 9) == ((idx + range - 1) / 9))
 		for (UInt32 i = idx; i < (idx + range); i++)
 			_hArt[i] = arg;
-	}
 }
 
 void EAr_MGEFInfoLib::SetProjectile(BGSProjectile* arg, UInt32 idx, UInt32 range)
 {
-	UInt32 mgefIdx = idx / 9;
-	if (READY && (mgefIdx == (idx + range - 1) / 9))
-	{
-		EffectSetting* thisMGEF = GetMGEFbyIndex(mgefIdx);
-		if (!thisMGEF)
-		{
-			_MESSAGE("ERROR: Attempted to set Projectile on NULL effect [mgefIdx %u, idx %u, range %u, arg %08X]", mgefIdx, idx, range, (arg) ? arg->formID : 0);
-			return;
-		}
-
-		thisMGEF->properties.projectile = arg;
+	if (READY && (idx / 9) == ((idx + range - 1) / 9))
 		for (UInt32 i = idx; i < (idx + range); i++)
 			_projectiles[i] = arg;
-	}
 }
 
 void EAr_MGEFInfoLib::SetImpactData(BGSImpactDataSet* arg, UInt32 idx, UInt32 range)
 {
-	UInt32 mgefIdx = idx / 9;
-	if (READY && (mgefIdx == (idx + range - 1) / 9))
-	{
-		EffectSetting* thisMGEF = GetMGEFbyIndex(mgefIdx);
-		if (!thisMGEF)
-		{
-			_MESSAGE("ERROR: Attempted to set IDS on NULL effect [mgefIdx %u, idx %u, range %u, arg %08X]", mgefIdx, idx, range, (arg) ? arg->formID : 0);
-			return;
-		}
-
-		thisMGEF->properties.impactDataSet = arg;
+	if (READY && (idx / 9) == ((idx + range - 1) / 9))
 		for (UInt32 i = idx; i < (idx + range); i++)
 			_impactData[i] = arg;
-	}
 }
 
 void EAr_MGEFInfoLib::SetPersistFlag(UInt32 arg, UInt32 idx, UInt32 range)
 {
-	UInt32 mgefIdx = idx / 9;
-	if (READY && (mgefIdx == (idx + range - 1) / 9))
-	{
-		EffectSetting* thisMGEF = GetMGEFbyIndex(mgefIdx);
-		if (!thisMGEF)
-		{
-			_MESSAGE("ERROR: Attempted to set Persist Flag on NULL effect [mgefIdx %u, idx %u, range %u, arg %u]", mgefIdx, idx, range, arg);
-			return;
-		}
-
-		if (arg > 0)
-			thisMGEF->properties.flags  |=  thisMGEF->properties.kEffectType_FXPersist;
-		else
-			thisMGEF->properties.flags  &=  ~(thisMGEF->properties.kEffectType_FXPersist);
-
+	if (READY && (idx / 9) == ((idx + range - 1) / 9))
 		for (UInt32 i = idx; i < (idx + range); i++)
 			_persistFlags[i] = arg;
-	}
 }
 
 void EAr_MGEFInfoLib::SetTaperWeight(float arg, UInt32 idx, UInt32 range)
 {
-	UInt32 mgefIdx = idx / 9;
-	if (READY && (mgefIdx == (idx + range - 1) / 9))
-	{
-		EffectSetting* thisMGEF = GetMGEFbyIndex(mgefIdx);
-		if (!thisMGEF)
-		{
-			_MESSAGE("ERROR: Attempted to set Taper Weight on NULL effect [mgefIdx %u, idx %u, range %u, arg %g]", mgefIdx, idx, range, arg);
-			return;
-		}
-
-		thisMGEF->properties.taperWeight = arg;
+	if (READY && (idx / 9) == ((idx + range - 1) / 9))
 		for (UInt32 i = idx; i < (idx + range); i++)
 			_tWeights[i] = arg;
-	}
 }
 
 void EAr_MGEFInfoLib::SetTaperCurve(float arg, UInt32 idx, UInt32 range)
 {
-	UInt32 mgefIdx = idx / 9;
-	if (READY && (mgefIdx == (idx + range - 1) / 9))
-	{
-		EffectSetting* thisMGEF = GetMGEFbyIndex(mgefIdx);
-		if (!thisMGEF)
-		{
-			_MESSAGE("ERROR: Attempted to set Taper Curve on NULL effect [mgefIdx %u, idx %u, range %u, arg %g]", mgefIdx, idx, range, arg);
-			return;
-		}
-
-		thisMGEF->properties.taperCurve = arg;
+	if (READY && (idx / 9) == ((idx + range - 1) / 9))
 		for (UInt32 i = idx; i < (idx + range); i++)
 			_tCurves[i] = arg;
-	}
 }
 
 void EAr_MGEFInfoLib::SetTaperDuration(float arg, UInt32 idx, UInt32 range)
 {
-	UInt32 mgefIdx = idx / 9;
-	if (READY && (mgefIdx == (idx + range - 1) / 9))
-	{
-		EffectSetting* thisMGEF = GetMGEFbyIndex(mgefIdx);
-		if (!thisMGEF)
-		{
-			_MESSAGE("ERROR: Attempted to set Taper Duration on NULL effect [mgefIdx %u, idx %u, range %u, arg %g]", mgefIdx, idx, range, arg);
-			return;
-		}
-
-		thisMGEF->properties.taperDuration = arg;
+	if (READY && (idx / 9) == ((idx + range - 1) / 9))
 		for (UInt32 i = idx; i < (idx + range); i++)
 			_tDurations[i] = arg;
-	}
 }
