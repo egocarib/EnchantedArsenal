@@ -5,6 +5,8 @@
 *.aps
 *.pch
 *.vspscc
+*.vcproj
+*.sln
 *_i.c
 *_p.c
 *.ncb
@@ -18,10 +20,11 @@
 *.lib
 *.sbr
 obj/
-[Bb]in
+[Bb]in/
 [Dd]ebug*/
 [Rr]elease*/
 [Dd]epricated*/
+IntermediateBuild/
 CLIK/
 common/
 /BuildIncrement.jse
