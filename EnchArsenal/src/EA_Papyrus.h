@@ -85,6 +85,7 @@ namespace papyrusEnchArsenal
 	BSFixedString	AddCustomEnchantment(StaticFunctionTag* base, VMArray<EffectSetting*> returnMGEF, VMArray<bool> returnPersistData);
 	void			RemoveCustomEnchantment(StaticFunctionTag* base, UInt32 index);
 	void			CheckForMissingCustomEnchantments(StaticFunctionTag* base, VMArray<UInt32> indexesToCheck);
+	void			AssertCurrentCustomData(StaticFunctionTag* base, VMArray<EffectSetting*> currentMGEFs);
 
 	//Papyrus Uninstallation Interface
 	void UninstallEnchArsenalPlugin(StaticFunctionTag* base, bool shouldUninstall);

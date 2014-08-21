@@ -9,7 +9,7 @@
 //list is then retrieved each game load and deleted on the papyrus side as well.
 extern	std::vector<UInt32>	RemovedCustomEnchantmentsRecord;
 
-const	UInt32				kSerializationDataVersion = 1;
+const	UInt32				kSerializationDataVersion = 2;
 
 struct SaveFormData
 {
@@ -44,3 +44,6 @@ template <typename LoadIntfc_T> float	ProcessLoadFloat		(LoadIntfc_T* intfc);
 template <typename LoadIntfc_T> void	Serialization_Preload	(LoadIntfc_T* intfc);
 
 void Serialization_Revert(SKSESerializationInterface * intfc);
+
+//Correct version 1 serialization data
+void CorrectVersion1Data(std::vector<UInt32> &mgefFormsToKeep);

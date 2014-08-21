@@ -90,6 +90,7 @@ public:
 		_tCurves.clear();
 		_tDurations.clear();
 		_mgefs.clear();
+		_mgefForms.clear();
 		READY = false;
 		battleaxeKeyword = NULL;
 	}

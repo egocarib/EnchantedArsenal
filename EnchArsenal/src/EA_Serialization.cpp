@@ -200,6 +200,60 @@ void Serialization_Save(SKSESerializationInterface * intfc)
 //______________________________________________________________________________________________________________________
 //==================  LOAD DATA  =======================================================================================
 
+//customMGEFInfoLibrary was not being Reset in version 1, resulting in accumulating cosave size. This
+//function is called from papyrus with current data to fix the problem and eliminate unnecessary data.
+bool versionDataCorrectionNeeded = false;
+void CorrectVersion1Data(IntVec &mgefFormsToKeep)
+{
+	if (!versionDataCorrectionNeeded || mgefFormsToKeep.size() == 0)
+		return;
+
+	_MESSAGE("Correcting loaded cosave data from older version...");
+
+	std::map<UInt32, UInt32> indexer; //hold each unique MGEF formID along with the last index it is found at in _mgefForms
+
+	for (UInt32 i = 0; i < customMGEFInfoLibrary._mgefForms.size(); i++)
+		indexer[customMGEFInfoLibrary._mgefForms[i]] = i;
+
+	//Now rebuild customMGEFInfoLibrary based on info gathered from current Library and from papyrus:
+	EAr_MGEFInfoLib newLib;
+	for (UInt32 i = 0; i < mgefFormsToKeep.size(); i++)
+	{
+		newLib._mgefForms.push_back(mgefFormsToKeep[i]);
+		UInt32 index = indexer[mgefFormsToKeep[i]] * 9; //beginning index of this MGEF's effect info
+		UInt32 maxIndex = index + 9;
+		if (maxIndex <= customMGEFInfoLibrary._eShaders.size()) //saftey check
+			for (; index < maxIndex; index++)
+			{
+				newLib._eShaders.push_back(customMGEFInfoLibrary._eShaders[index]);
+				newLib._eArt.push_back(customMGEFInfoLibrary._eArt[index]);
+				newLib._hShaders.push_back(customMGEFInfoLibrary._hShaders[index]);
+				newLib._hArt.push_back(customMGEFInfoLibrary._hArt[index]);
+				newLib._projectiles.push_back(customMGEFInfoLibrary._projectiles[index]);
+				newLib._impactData.push_back(customMGEFInfoLibrary._impactData[index]);
+				newLib._persistFlags.push_back(customMGEFInfoLibrary._persistFlags[index]);
+				newLib._tWeights.push_back(customMGEFInfoLibrary._tWeights[index]);
+				newLib._tCurves.push_back(customMGEFInfoLibrary._tCurves[index]);
+				newLib._tDurations.push_back(customMGEFInfoLibrary._tDurations[index]);
+			}
+	}
+
+	customMGEFInfoLibrary._mgefForms	= newLib._mgefForms;
+	customMGEFInfoLibrary._eShaders		= newLib._eShaders;
+	customMGEFInfoLibrary._eArt			= newLib._eArt;
+	customMGEFInfoLibrary._hShaders		= newLib._hShaders;
+	customMGEFInfoLibrary._hArt			= newLib._hArt;
+	customMGEFInfoLibrary._projectiles	= newLib._projectiles;
+	customMGEFInfoLibrary._impactData	= newLib._impactData;
+	customMGEFInfoLibrary._persistFlags	= newLib._persistFlags;
+	customMGEFInfoLibrary._tWeights		= newLib._tWeights;
+	customMGEFInfoLibrary._tCurves		= newLib._tCurves;
+	customMGEFInfoLibrary._tDurations	= newLib._tDurations;
+
+	_MESSAGE("Data correction complete.");
+}
+
+
 template <typename LoadIntfc_T>
 UInt32 ProcessLoadForm(LoadIntfc_T* intfc)
 {
@@ -286,9 +340,10 @@ void Serialization_Preload(LoadIntfc_T* intfc)
 			dataLoaded = true;
 			_MESSAGE("Loading...");
 			MGEFInfoLibrary.Reset();
+			customMGEFInfoLibrary.Reset();
 		}
 
-		if (version != kSerializationDataVersion)
+		if (version > kSerializationDataVersion)
 			{ _MESSAGE("Error Reading From Cosave: UNKNOWN DATA VERSION %u, Aborting...\n", version); error = true; }
 
 		else if (type == 'eSha')
@@ -365,6 +420,8 @@ void Serialization_Preload(LoadIntfc_T* intfc)
 	//================= VERSION 2.0 CUSTOM ENCHANTMENTS ======================================================================
 
 		else if (type == 'cMGF')
+		{
+			_MESSAGE("\nreading cMGEF, length = %d", length);
 			for (;length > 0; length -= sizeof(SaveFormData))
 			{
 				UInt32 mgefForm = ProcessLoadForm(intfc);
@@ -372,13 +429,19 @@ void Serialization_Preload(LoadIntfc_T* intfc)
 					missingFormError = true;
 				customMGEFInfoLibrary._mgefForms.push_back(mgefForm);
 			}
+			_MESSAGE("read complete: sizeof _mgefForms = %u", customMGEFInfoLibrary._mgefForms.size());
+		}
 
 		else if (type == 'cESH')
+		{
+			_MESSAGE("\nreading cMGEF, length = %d", length);
 			for (;length > 0; length -= sizeof(SaveFormData))
 			{
 				TESEffectShader* thisShader = DYNAMIC_CAST(LookupFormByID(ProcessLoadForm(intfc)), TESForm, TESEffectShader);
 				customMGEFInfoLibrary._eShaders.push_back(thisShader);
 			}
+			_MESSAGE("read complete: sizeof _eShaders = %u", customMGEFInfoLibrary._eShaders.size());
+		}
 
 		else if (type == 'cEAR')
 			for (;length > 0; length -= sizeof(SaveFormData))
@@ -459,11 +522,14 @@ void Serialization_Preload(LoadIntfc_T* intfc)
 			{ _MESSAGE("Error Reading From Cosave: UNHANDLED TYPE %08X, Aborting...\n", type); error = true; }
 	}
 
-
 	if (!error)
 		_MESSAGE("Enchantment Visual Effect Library Loaded Successfully.\n");
 	else
 		_MESSAGE("LOAD ERROR: There was an unexpected error during the load process.");
+
+	//Correct data accumulation problem with serialization version 1
+	if (version == 1)
+		versionDataCorrectionNeeded = true;
 
 	if (missingFormError)
 	{

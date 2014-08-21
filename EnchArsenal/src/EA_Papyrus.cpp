@@ -25,7 +25,10 @@ bool papyrusEnchArsenal::SetupMGEFInfoLibrary(StaticFunctionTag* base,
 	VMArray<float>				tDurations )
 {
 	if (MGEFInfoLibrary.HasData())
+	{
 		MGEFInfoLibrary.Reset(); //reset on subsequent save loads
+		customMGEFInfoLibrary.Reset();
+	}
 
 	return MGEFInfoLibrary.SetMainArrays(eShaders, eArt, hShaders, hArt, projectiles, impactData, persistFlags, tWeights, tCurves, tDurations);
 }
@@ -221,6 +224,22 @@ void papyrusEnchArsenal::CheckForMissingCustomEnchantments(StaticFunctionTag* ba
 	indexesToCheck.Set(&end, i);
 }
 
+//Called from papyrus, part of the process to correct Version 1 data error
+void papyrusEnchArsenal::AssertCurrentCustomData(StaticFunctionTag* base, VMArray<EffectSetting*> currentMGEFs)
+{
+	IntVec mgefForms;
+	for (UInt32 i = 0; i < currentMGEFs.Length(); i++)
+	{
+		EffectSetting* thisMGEF = NULL;
+		currentMGEFs.Get(&thisMGEF, i);
+		if (thisMGEF)
+			mgefForms.push_back(thisMGEF->formID);
+	}
+
+	if (mgefForms.size() > 0)
+		CorrectVersion1Data(mgefForms);
+}
+
 
 void papyrusEnchArsenal::UninstallEnchArsenalPlugin(StaticFunctionTag* base, bool shouldUninstall)
 {
@@ -318,6 +337,8 @@ bool papyrusEnchArsenal::RegisterFuncs(VMClassRegistry* registry)
 		new NativeFunction1<StaticFunctionTag, void, UInt32>("RemoveCustomEnchantment", "EnchArsenal", papyrusEnchArsenal::RemoveCustomEnchantment, registry));
 	registry->RegisterFunction(
 		new NativeFunction1<StaticFunctionTag, void, VMArray<UInt32>>("CheckForMissingCustomEnchantments", "EnchArsenal", papyrusEnchArsenal::CheckForMissingCustomEnchantments, registry));
+	registry->RegisterFunction(
+		new NativeFunction1<StaticFunctionTag, void, VMArray<EffectSetting*>>("AssertCurrentCustomData", "EnchArsenal", papyrusEnchArsenal::AssertCurrentCustomData, registry));
 
 
 	registry->SetFunctionFlags("EnchArsenal", "SetupMGEFInfoLibrary", VMClassRegistry::kFunctionFlag_NoWait);
@@ -367,6 +388,7 @@ bool papyrusEnchArsenal::RegisterFuncs(VMClassRegistry* registry)
 	registry->SetFunctionFlags("EnchArsenal", "AddCustomEnchantment", VMClassRegistry::kFunctionFlag_NoWait);
 	registry->SetFunctionFlags("EnchArsenal", "RemoveCustomEnchantment", VMClassRegistry::kFunctionFlag_NoWait);
 	registry->SetFunctionFlags("EnchArsenal", "CheckForMissingCustomEnchantments", VMClassRegistry::kFunctionFlag_NoWait);
+	registry->SetFunctionFlags("EnchArsenal", "AssertCurrentCustomData", VMClassRegistry::kFunctionFlag_NoWait);
 
 	return true;
 }
