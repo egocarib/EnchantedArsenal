@@ -1556,6 +1556,7 @@ Function SetupCustomizationUpdate(EAr_Mothership headquarters)
 EndFunction
 
 
+bool hasFixedCustomData = false
 Function RunCustomizationUpkeep() ;removes any forms that originated from mods that are no longer loaded
 	int[] removeForms = new int[14]
 	EnchArsenal.CheckForMissingCustomEnchantments(removeForms)
@@ -1564,6 +1565,10 @@ Function RunCustomizationUpkeep() ;removes any forms that originated from mods t
 		RemoveCustomEffect(removeForms[i], bUpkeep = true)
 		i += 1
 	endWhile
+	if (!hasFixedCustomData)
+		EnchArsenal.AssertCurrentCustomData(CustomEffect)
+		hasFixedCustomData = true
+	endif
 EndFunction
 
 

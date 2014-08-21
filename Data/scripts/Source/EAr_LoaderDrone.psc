@@ -21,7 +21,7 @@ EndEvent
 
 int property ModVersion = 100 auto
 int Function GetModVersion()
-	return 210
+	return 221
 EndFunction
 
 Function UpdateMod(EAr_Mothership mothership)
@@ -224,6 +224,12 @@ Function UpdateMod(EAr_Mothership mothership)
 			UpdateMessage = "$Version 2.10 -- New Flame & Spark Enchant Art is available, thanks to foster xbl!! -- Works for Daggers, Swords, Greatswords, and Warhammers. Try it out in the Advanced menu!"
 		endif
 
+	endif
+
+	if modVersion < 221
+		modVersion = 221
+
+		UpdateMessage = ""
 	endif
 
 	;convey any update messages to the user through the menu next time they access it

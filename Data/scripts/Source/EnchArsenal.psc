@@ -55,3 +55,4 @@ Function UninstallEnchArsenalPlugin(bool shouldUninstall) global native
 string Function AddCustomEnchantment(MagicEffect[] returnMGEF, bool[] returnPersistInfo) global native
 Function RemoveCustomEnchantment(int index) global native
 Function CheckForMissingCustomEnchantments(int[] indicesToCheck) global native
+Function AssertCurrentCustomData(MagicEffect[] currentMGEFs) global native ;used to fix internal plugin data save error in versions before 2.21
