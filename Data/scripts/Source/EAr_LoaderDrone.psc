@@ -21,7 +21,7 @@ EndEvent
 
 int property ModVersion = 100 auto
 int Function GetModVersion()
-	return 221
+	return 222
 EndFunction
 
 Function UpdateMod(EAr_Mothership mothership)
@@ -226,8 +226,8 @@ Function UpdateMod(EAr_Mothership mothership)
 
 	endif
 
-	if modVersion < 221
-		modVersion = 221
+	if modVersion < 222
+		modVersion = 222
 
 		UpdateMessage = ""
 	endif

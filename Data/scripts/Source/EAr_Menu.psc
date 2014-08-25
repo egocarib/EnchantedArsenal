@@ -2,6 +2,8 @@ Scriptname EAr_Menu extends SKI_ConfigBase
 
 GlobalVariable property EAr_InstallComplete auto
 
+EffectShader property EAr_EmptyFXS auto ;invisible EffectShader, necessary so that EnchantArt can still work with Shader set to NONE
+
 int property FX_SCOPE = 9 autoreadonly ;(represents a full "span" of weapon-linked options specific to a single MGEF in the main effect arrays)
 int property FX_ENTRY = 1 autoreadonly ;(single effect entry)
 
@@ -1135,7 +1137,7 @@ Event onOptionSelect(int o)
 
 			elseif (opIdx == 0) ;Swap FX Shader Group:
 				int iFX = (sFXTypes.find(customEffectEnchShaderStrs[currentMainOp]) + 1) % 9
-				EffectShader esh = none
+				EffectShader esh = EAr_EmptyFXS
 				esh = effectDefaultsEnchShader[iOp]
 				customEffectEnchShaderStrsSpec[currentMainOp] = mothership.xEnchShaderStrings(iFX, filterShaders = false)[0]
 				customEffectEnchShaderStrs[currentMainOp] = sFXTypes[iFX]
@@ -1176,7 +1178,7 @@ Event onOptionSelect(int o)
 			elseif (opIdx == 0) ;Swap FX Shader Group:
 				int iFX = (sFXTypes.find(pStrEnchShader[fxOffset]) + 1) % 9
 
-				EffectShader esh = none
+				EffectShader esh = EAr_EmptyFXS
 				;this is sort of convoluted, but can't think of a simpler way to do it:
 				if sFXTypes[iFX] == WeaponMGEFShaderStrs[iOp]
 					esh = effectDefaultsEnchShader[iOp]
