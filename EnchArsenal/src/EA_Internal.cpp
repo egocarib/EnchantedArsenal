@@ -124,6 +124,8 @@ void EArInternal::SetEnchantEffects(TESObjectWEAP* pWeap, EnchantmentItem* pEnch
 	if (weapType < 6 || weapType == 9 || (weapType == 6 && WeaponHasKeyword(pWeap, MGEFInfoLibrary.battleaxeKeyword)))
 		weapType -= 1;
 		//this will result in: 0=sword, 1=dagger, 2=waraxe, 3=mace, 4=greatsword, 5=battleaxe, 6=warhammer, 7=bow, 8=crossbow
+	if (weapType > 8) //Werewolf claws returned 0 for type which resulted in maxInt after decrement.
+		weapType = 0; //This should fix that and prevent any other weird shenanigans.
 
 	if (bApply)
 	{
